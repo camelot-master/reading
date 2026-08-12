@@ -382,6 +382,9 @@
     }
 
     function nextSentence() {
+        // 문장을 넘길 때도 기존 재생 중인 음성 정지
+        window.speechSynthesis.cancel();
+
         if (currentSentenceIdx < sentenceList.length - 1) {
             currentSentenceIdx++;
             showSentence();
@@ -403,6 +406,9 @@
     }
 
     function switchView(viewId) {
+        // 화면 이동 시 읽던 음성 즉시 정지
+        window.speechSynthesis.cancel();
+
         currentView = viewId;
         document.getElementById('viewWords').classList.remove('active');
         document.getElementById('viewFullText').classList.remove('active');
@@ -424,6 +430,9 @@
     }
 
     function handleBack() {
+        // 뒤로 가기 눌렀을 때도 음성 정지
+        window.speechSynthesis.cancel();
+
         if (currentView !== 'viewWords') {
             switchView('viewWords');
         } else {
