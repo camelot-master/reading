@@ -237,7 +237,7 @@
 
         <!-- 화면 3: 한문장씩 보기 -->
         <div id="viewSentence" class="view">
-            <div class="counter" id="sentenceCounter">1 / 7</div>
+            <div class="counter" id="sentenceCounter">1 / 6</div>
             <div class="sentence-card" onclick="speakCurrentSentence()">
                 <div class="eng-sentence" id="engSentence"></div>
                 <div class="kor-sentence" id="korSentence"></div>
@@ -263,37 +263,36 @@
     }
 
     // 1. 제공받은 지문 데이터
-    const rawPassage = "We live in the Knowledge Age. That means the ability to apply the right knowledge effectively is an important skill and the key factor in our success. We know our living environment changes all the time and becomes complicated as time goes on. That's why lifelong learning is a 'must' in the real-life context of the Knowledge Age. Knowledge makes us better people, allows us to make better decisions, and helps us in becoming more successful in our jobs. We cannot survive today with the knowledge that we learned long time ago. So it's important to learn something new each day just to go on and on.";
+    const rawPassage = "People who try to sell their products abroad have to remember certain things. To give the right information about their products, they need to be very careful about translating. They must also consider differences in laws and customs. For instance, certain countries will not allow TV commercials on Sunday, and others will not allow TV commercials for children's products on any day of the week. In some parts of the world, it is forbidden to show dogs on television or certain types of clothing, such as jeans. People who do not understand such laws and customs will soon have problems.";
 
     // 지문에서 선별한 핵심 단어 16개
     const wordList = [
-        { eng: "knowledge", kor: "지식" },
-        { eng: "ability", kor: "능력" },
-        { eng: "apply", kor: "적용하다" },
-        { eng: "effectively", kor: "효과적으로" },
-        { eng: "factor", kor: "요인" },
-        { eng: "environment", kor: "환경" },
-        { eng: "complicated", kor: "복잡한" },
-        { eng: "lifelong", kor: "평생의" },
-        { eng: "context", kor: "맥락" },
-        { eng: "decision", kor: "결정" },
-        { eng: "successful", kor: "성공적인" },
-        { eng: "survive", kor: "살아남다" },
-        { eng: "learned", kor: "배운" },
-        { eng: "important", kor: "중요한" },
-        { eng: "change", kor: "변화하다" },
-        { eng: "skill", kor: "기술" }
+        { eng: "abroad", kor: "해외에서" },
+        { eng: "product", kor: "제품" },
+        { eng: "translate", kor: "번역하다" },
+        { eng: "consider", kor: "고려하다" },
+        { eng: "difference", kor: "차이점" },
+        { eng: "custom", kor: "관습" },
+        { eng: "commercial", kor: "광고" },
+        { eng: "certain", kor: "특정한" },
+        { eng: "forbidden", kor: "금지된" },
+        { eng: "television", kor: "텔레비전" },
+        { eng: "clothing", kor: "의류" },
+        { eng: "understand", kor: "이해하다" },
+        { eng: "problem", kor: "문제" },
+        { eng: "allow", kor: "허용하다" },
+        { eng: "information", kor: "정보" },
+        { eng: "careful", kor: "신중한" }
     ];
 
     // 한 줄씩 읽기용 문장 분할 및 번역 데이터
     const sentenceList = [
-        { eng: "We live in the Knowledge Age.", kor: "우리는 지식 정보화 시대에 살고 있습니다." },
-        { eng: "That means the ability to apply the right knowledge effectively is an important skill and the key factor in our success.", kor: "이는 올바른 지식을 효과적으로 적용하는 능력이 중요한 기술이자 성공의 핵심 요인임을 의미합니다." },
-        { eng: "We know our living environment changes all the time and becomes complicated as time goes on.", kor: "우리는 우리의 생활 환경이 항상 변화하고 시간이 지남에 따라 복잡해진다는 것을 알고 있습니다." },
-        { eng: "That's why lifelong learning is a 'must' in the real-life context of the Knowledge Age.", kor: "이것이 바로 지식 정보화 시대의 실생활 맥락에서 평생학습이 '필수'인 이유입니다." },
-        { eng: "Knowledge makes us better people, allows us to make better decisions, and helps us in becoming more successful in our jobs.", kor: "지식은 우리를 더 나은 사람으로 만들어 주고, 더 나은 결정을 내리게 하며, 직업에서 더 성공하도록 도와줍니다." },
-        { eng: "We cannot survive today with the knowledge that we learned long time ago.", kor: "우리는 오래전에 배운 지식만으로는 오늘날 살아남을 수 없습니다." },
-        { eng: "So it's important to learn something new each day just to go on and on.", kor: "따라서 계속해서 앞으로 나아가기 위해서는 매일 새로운 것을 배우는 것이 중요합니다." }
+        { eng: "People who try to sell their products abroad have to remember certain things.", kor: "해외에서 제품을 판매하려는 사람들은 몇 가지 사항을 기억해야 합니다." },
+        { eng: "To give the right information about their products, they need to be very careful about translating.", kor: "제품에 대한 올바른 정보를 제공하기 위해서는 번역할 때 매우 신중해야 합니다." },
+        { eng: "They must also consider differences in laws and customs.", kor: "또한 법과 관습의 차이점도 고려해야 합니다." },
+        { eng: "For instance, certain countries will not allow TV commercials on Sunday, and others will not allow TV commercials for children's products on any day of the week.", kor: "예를 들어, 어떤 국가에서는 일요일에 TV 광고를 허용하지 않고, 다른 국가에서는 요일에 상관없이 어린이용 제품의 TV 광고를 허용하지 않습니다." },
+        { eng: "In some parts of the world, it is forbidden to show dogs on television or certain types of clothing, such as jeans.", kor: "세계 어떤 지역에서는 텔레비전에 개나 청바지와 같은 특정 유형의 옷을 보여주는 것이 금지되어 있습니다." },
+        { eng: "People who do not understand such laws and customs will soon have problems.", kor: "이러한 법과 관습을 이해하지 못하는 사람들은 곧 문제에 봉착하게 될 것입니다." }
     ];
 
     let currentView = 'viewWords';

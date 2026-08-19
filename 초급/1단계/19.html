@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16강 학습하기</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        h1 { font-size: 18px; font-weight: 700; }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        nav button {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        nav button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* 단어 16개 세로 1열 정렬 */
+        #wordGrid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px;
+            width: 100%;
+        }
+        .word-card {
+            width: 100%;
+            padding: 18px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .word-card.meaning {
+            background: #2563eb;
+        }
+
+        .passage-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sentence-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .eng-text { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .kor-text { font-size: 14px; color: #94a3b8; display: none; }
+        .kor-text.show { display: block; }
+        .sentence-controls { display: flex; gap: 8px; }
+        .sentence-controls button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-btn" onclick="handleBack()">❮ 메인으로</button>
+            <h1 id="mainTitle">16강 학습</h1>
+            <div style="width: 50px;"></div>
+        </header>
+
+        <nav>
+            <button id="btnWords" class="active" onclick="switchView('viewWords')">단어장</button>
+            <button id="btnFullText" onclick="switchView('viewFullText')">전체본문</button>
+            <button id="btnSentence" onclick="switchView('viewSentence')">문장학습</button>
+        </nav>
+
+        <!-- 1. 단어장 (세로 1열) -->
+        <div id="viewWords" class="view-panel active">
+            <div id="wordGrid"></div>
+        </div>
+
+        <!-- 2. 전체 본문 -->
+        <div id="viewFullText" class="view-panel">
+            <div class="passage-box" id="fullPassageText"></div>
+            <button class="btn-action" onclick="speakAll()">🔊 전체 오디오 듣기</button>
+        </div>
+
+        <!-- 3. 한 문장씩 읽기 -->
+        <div id="viewSentence" class="view-panel">
+            <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 6px;" id="sentenceCounter">1 / 1</div>
+            <div class="sentence-box">
+                <div class="eng-text" id="engSentence"></div>
+                <div class="kor-text" id="korSentence"></div>
+            </div>
+            <div class="sentence-controls">
+                <button class="btn-action" style="background: #0284c7;" onclick="speakCurrentSentence()">🔊 읽기 / 해석</button>
+                <button class="btn-action" onclick="nextSentence()">다음 문장 ❯</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 지문 기반 핵심 단어 16개 (세로 정렬용)
+        const wordList = [
+            { eng: "1. plastic money", kor: "플라스틱 화폐(신용카드/폴리머 지폐)" },
+            { eng: "2. credit card", kor: "신용카드" },
+            { eng: "3. nation", kor: "국가, 나라" },
+            { eng: "4. switch from", kor: "~에서 전환하다, 바꾸다" },
+            { eng: "5. paper money", kor: "종이 지폐" },
+            { eng: "6. tear", kor: "찢어지다" },
+            { eng: "7. easily", kor: "쉽게" },
+            { eng: "8. strong", kor: "튼튼한, 강한" },
+            { eng: "9. last", kor: "오래가다, 지속되다" },
+            { eng: "10. washing machine", kor: "세탁기" },
+            { eng: "11. for", kor: "왜냐하면 (~이기 때문이다)" },
+            { eng: "12. matter", kor: "문제가 되다, 중요하다" },
+            { eng: "13. get wet", kor: "젖다" },
+            { eng: "14. counterfeit", kor: "위조하다" },
+            { eng: "15. difficult", kor: "어려운" },
+            { eng: "16. copy", kor: "복제하다, 베끼다" }
+        ];
+
+        // 전체 본문
+        const rawPassage = `In most countries, when people say “plastic money,” they are usually talking about credit cards. However, in Australia, they may be talking about real money. Plastic money is much better than paper money. That’s why Australia and 22 other nations have switched from paper to plastic money. Paper money tears easily, but plastic money does not. Plastic money is stronger than paper money and so it lasts a lot longer. You cannot lose your plastic money in the washing machine, for it doesn’t matter at all that plastic money gets wet. Paper money is easy for people to counterfeit. However, it is very difficult to copy plastic money.`;
+
+        // 문장별 분할 및 한국어 해석
+        const sentenceList = [
+            { eng: "In most countries, when people say “plastic money,” they are usually talking about credit cards.", kor: "대부분의 국가에서 사람들이 '플라스틱 머니'라고 말할 때는 보통 신용카드를 의미합니다." },
+            { eng: "However, in Australia, they may be talking about real money.", kor: "하지만 호주에서는 진짜 현금을 가리켜 말하는 것일 수도 있습니다." },
+            { eng: "Plastic money is much better than paper money.", kor: "플라스틱 지폐는 종이 지폐보다 훨씬 더 뛰어납니다." },
+            { eng: "That’s why Australia and 22 other nations have switched from paper to plastic money.", kor: "이것이 바로 호주와 다른 22개국이 종이 지폐에서 플라스틱 지폐로 전환한 이유입니다." },
+            { eng: "Paper money tears easily, but plastic money does not.", kor: "종이 지폐는 쉽게 찢어지지만, 플라스틱 지폐는 그렇지 않습니다." },
+            { eng: "Plastic money is stronger than paper money and so it lasts a lot longer.", kor: "플라스틱 지폐는 종이 지폐보다 튼튼해서 훨씬 더 오래 지속됩니다." },
+            { eng: "You cannot lose your plastic money in the washing machine, for it doesn’t matter at all that plastic money gets wet.", kor: "플라스틱 지폐는 물에 젖어도 전혀 상관없기 때문에 세탁기에 넣고 돌려도 훼손되어 잃을 염려가 없습니다." },
+            { eng: "Paper money is easy for people to counterfeit.", kor: "종이 지폐는 사람들이 위조하기 쉽습니다." },
+            { eng: "However, it is very difficult to copy plastic money.", kor: "하지만 플라스틱 지폐를 복제하는 것은 매우 어렵습니다." }
+        ];
+
+        let currentSentenceIdx = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initWords();
+            document.getElementById('fullPassageText').innerText = rawPassage;
+        });
+
+        function initWords() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+
+            wordList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerText = item.eng;
+                card.dataset.eng = item.eng;
+                card.dataset.kor = item.kor;
+                card.dataset.state = 'eng';
+                
+                card.onclick = () => toggleWord(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleWord(card) {
+            if (card.dataset.state === 'eng') {
+                card.innerText = card.dataset.kor;
+                card.classList.add('meaning');
+                card.dataset.state = 'kor';
+            } else {
+                card.innerText = card.dataset.eng;
+                card.classList.remove('meaning');
+                card.dataset.state = 'eng';
+            }
+            speak(card.dataset.eng.replace(/^[0-9]+\.\s*/, ''));
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakAll() { speak(rawPassage); }
+
+        function showSentence() {
+            const current = sentenceList[currentSentenceIdx];
+            document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
+            document.getElementById('engSentence').innerText = current.eng;
+            document.getElementById('korSentence').innerText = current.kor;
+            document.getElementById('korSentence').classList.remove('show');
+        }
+
+        function speakCurrentSentence() {
+            speak(sentenceList[currentSentenceIdx].eng);
+            document.getElementById('korSentence').classList.add('show');
+        }
+
+        function nextSentence() {
+            if (currentSentenceIdx < sentenceList.length - 1) {
+                currentSentenceIdx++;
+            } else {
+                alert("마지막 문장입니다. 첫 문장으로 이동합니다.");
+                currentSentenceIdx = 0;
+            }
+            showSentence();
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'viewWords') document.getElementById('btnWords').classList.add('active');
+            if (viewId === 'viewFullText') document.getElementById('btnFullText').classList.add('active');
+            if (viewId === 'viewSentence') {
+                document.getElementById('btnSentence').classList.add('active');
+                currentSentenceIdx = 0;
+                showSentence();
+            }
+        }
+
+        function handleBack() {
+            window.location.href = '../../index.html';
+        }
+    </script>
+</body>
+</html>

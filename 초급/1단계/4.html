@@ -1,435 +1,292 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>학습 상세 및 본문 듣기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학습하기</title>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            padding: 20px 16px;
         }
-
-        .app-container {
+        .container {
             width: 100%;
             max-width: 480px;
-            height: 100vh;
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
         }
-
-        /* 상단 헤더 */
         header {
-            padding: 16px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 20px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-
-        .back-btn:active { background: rgba(255, 255, 255, 0.1); }
-        .title-container { text-align: center; flex-grow: 1; }
-        header h1 { font-size: 18px; font-weight: 700; }
-
-        /* 콘텐츠 영역 */
-        main {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .view {
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-            height: 100%;
-        }
-
-        .view.active { display: flex; }
-
-        /* 단어 16개 그리드 */
-        .word-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
             margin-bottom: 20px;
         }
-
-        .word-card {
-            aspect-ratio: 1;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
+        .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
             font-weight: 600;
-            padding: 4px;
+        }
+        h1 { font-size: 18px; font-weight: 700; }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        nav button {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        nav button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* 단어 16개 세로 1열 정렬 */
+        #wordGrid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px;
+            width: 100%;
+        }
+        .word-card {
+            width: 100%;
+            padding: 18px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.1s, background 0.2s, border-color 0.2s;
-            word-break: break-all;
-        }
-
-        .word-card:active { transform: scale(0.95); }
-        .word-card.meaning {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: var(--accent-blue);
-            color: #93c5fd;
-        }
-        .word-card.apple {
-            font-size: 24px;
-            cursor: default;
-            opacity: 0.5;
-        }
-
-        /* 하단 메뉴 네비게이션 버튼 */
-        .menu-box {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: auto;
-        }
-
-        .action-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 16px;
-            border-radius: 14px;
-            color: var(--text-primary);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
             transition: background 0.2s;
         }
+        .word-card.meaning {
+            background: #2563eb;
+        }
 
-        .action-btn:active { background: rgba(255, 255, 255, 0.1); }
-        .action-btn.primary {
-            background: var(--accent-blue);
+        .passage-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
             border: none;
-        }
-        .action-btn.primary:active { background: #2563eb; }
-
-        /* 본문 전체보기 스타일 */
-        .text-passage {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 16px;
-            line-height: 1.8;
-            font-size: 17px;
-            letter-spacing: 0.3px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-        }
-        .text-passage:active {
-            border-color: var(--accent-blue);
-        }
-        .hint-text {
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        /* 한문장씩 읽기 스타일 */
-        .sentence-card {
-            background: var(--card-bg);
-            padding: 30px 20px;
-            border-radius: 20px;
-            min-height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            gap: 16px;
-            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
         }
-        .eng-sentence { font-size: 19px; font-weight: 600; line-height: 1.5; }
-        .kor-sentence { font-size: 16px; color: #a7f3d0; min-height: 24px; opacity: 0; transition: opacity 0.2s; }
-        .kor-sentence.show { opacity: 1; }
-        
-        .counter {
+        .sentence-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 16px;
+            border-radius: 12px;
             text-align: center;
-            font-size: 14px;
-            color: var(--text-secondary);
+            margin-bottom: 16px;
         }
+        .eng-text { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .kor-text { font-size: 14px; color: #94a3b8; display: none; }
+        .kor-text.show { display: block; }
+        .sentence-controls { display: flex; gap: 8px; }
+        .sentence-controls button { flex: 1; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <button class="back-btn" onclick="handleBack()">❮ 메인으로</button>
+            <h1 id="mainTitle">1강 학습</h1>
+            <div style="width: 50px;"></div>
+        </header>
 
-<div class="app-container" onclick="unlockAudioContext()">
-    <header>
-        <button class="back-btn" onclick="handleBack()">&#10094;</button>
-        <div class="title-container">
-            <h1 id="mainTitle">단어 미리보기</h1>
-        </div>
-        <div style="width: 36px;"></div>
-    </header>
+        <nav>
+            <button id="btnWords" class="active" onclick="switchView('viewWords')">단어장</button>
+            <button id="btnFullText" onclick="switchView('viewFullText')">전체본문</button>
+            <button id="btnSentence" onclick="switchView('viewSentence')">문장학습</button>
+        </nav>
 
-    <main>
-        <!-- 화면 1: 단어장 메인 -->
-        <div id="viewWords" class="view active">
-            <div class="word-grid" id="wordGrid"></div>
-            <div class="menu-box">
-                <button class="action-btn" onclick="switchView('viewFullText')">📖 본문듣기</button>
-                <button class="action-btn" onclick="switchView('viewSentence')">🔤 한문장씩 읽기</button>
-            </div>
+        <!-- 1. 단어장 (세로 1열) -->
+        <div id="viewWords" class="view-panel active">
+            <div id="wordGrid"></div>
         </div>
 
-        <!-- 화면 2: 본문전체보기 -->
-        <div id="viewFullText" class="view">
-            <div class="text-passage" onclick="speakAll()">
-                <span id="fullPassageText"></span>
-            </div>
-            <p class="hint-text">💡 지문을 터치하면 전체 목소리가 오디오로 나옵니다.</p>
+        <!-- 2. 전체 본문 -->
+        <div id="viewFullText" class="view-panel">
+            <div class="passage-box" id="fullPassageText"></div>
+            <button class="btn-action" onclick="speakAll()">🔊 전체 오디오 듣기</button>
         </div>
 
-        <!-- 화면 3: 한문장씩 보기 -->
-        <div id="viewSentence" class="view">
-            <div class="counter" id="sentenceCounter">1 / 6</div>
-            <div class="sentence-card" onclick="speakCurrentSentence()">
-                <div class="eng-sentence" id="engSentence"></div>
-                <div class="kor-sentence" id="korSentence"></div>
+        <!-- 3. 한 문장씩 읽기 -->
+        <div id="viewSentence" class="view-panel">
+            <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 6px;" id="sentenceCounter">1 / 1</div>
+            <div class="sentence-box">
+                <div class="eng-text" id="engSentence"></div>
+                <div class="kor-text" id="korSentence"></div>
             </div>
-            <p class="hint-text">💡 문장을 터치하면 발음을 읽어주고 번역이 표시됩니다.</p>
-            <div class="menu-box">
-                <button class="action-btn primary" onclick="nextSentence()">다음 문장 ➔</button>
+            <div class="sentence-controls">
+                <button class="btn-action" style="background: #0284c7;" onclick="speakCurrentSentence()">🔊 읽기 / 해석</button>
+                <button class="btn-action" onclick="nextSentence()">다음 문장 ❯</button>
             </div>
         </div>
-    </main>
-</div>
+    </div>
 
-<script>
-    let audioUnlocked = false;
+    <script>
+        // 지문 기반 핵심 단어 16개 (세로 정렬용)
+        const wordList = [
+            { eng: "1. protect", kor: "보호하다" },
+            { eng: "2. liquid", kor: "액체" },
+            { eng: "3. bacteria", kor: "세균" },
+            { eng: "4. instance", kor: "예, 사례" },
+            { eng: "5. function", kor: "기능, 역할" },
+            { eng: "6. sense", kor: "감각" },
+            { eng: "7. touch", kor: "촉각, 만지다" },
+            { eng: "8. difference", kor: "차이점" },
+            { eng: "9. rough", kor: "거친" },
+            { eng: "10. smooth", kor: "매끄러운" },
+            { eng: "11. surface", kor: "표면" },
+            { eng: "12. determine", kor: "판단하다, 알아내다" },
+            { eng: "13. pale", kor: "창백한" },
+            { eng: "14. disease", kor: "질병, 병" },
+            { eng: "15. unusual", kor: "평소와 다른, 특이한" },
+            { eng: "16. nervous", kor: "긴장한, 불안해하는" }
+        ];
 
-    function unlockAudioContext() {
-        if (!audioUnlocked) {
-            window.speechSynthesis.getVoices();
-            const u = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(u);
-            audioUnlocked = true;
-        }
-    }
+        // 전체 본문
+        const rawPassage = `Most of us are aware that skin protects us from liquid, heat, cold, dirt, and bacteria. But that is not its only job. For instance, the skin is where our bodies make the vitamin D that we need. Another function has to do with the sense of touch. Without that sense, we could not feel any difference between rough and smooth surfaces. Skin can even help us determine if someone is sick. The wrong color ─ slightly gray or very pale ─ may be a sign of disease. Skin may show a person’s mental state, too. Unusual sweating, for example, may be a sign that a person is nervous or under stress.`;
 
-    // 1. 제공받은 지문 데이터
-    const rawPassage = "Psychologists who study memory tell us that our memories have three parts. First, there is short-term memory, which holds on to sights, sounds, smells, tastes and tactile experiences for only a minute or so. The second type of memory is working memory, which is where we use memory to think: We make comparisons, look for causes and effects, predict what will happen in the future. Finally, long-term memory is what we keep for many years. It is where we store the words to a song learned in childhood. We need all three kinds of memory to function well in life.";
+        // 문장별 분할 및 한국어 해석
+        const sentenceList = [
+            { eng: "Most of us are aware that skin protects us from liquid, heat, cold, dirt, and bacteria.", kor: "우리 대부분은 피부가 액체, 열, 추위, 먼지, 세균으로부터 우리를 보호한다는 것을 알고 있습니다." },
+            { eng: "But that is not its only job.", kor: "하지만 그것이 피부의 유일한 역할은 아닙니다." },
+            { eng: "For instance, the skin is where our bodies make the vitamin D that we need.", kor: "예를 들어, 피부는 우리 몸이 필요로 하는 비타민 D를 만드는 곳입니다." },
+            { eng: "Another function has to do with the sense of touch.", kor: "또 다른 기능은 촉각과 관련이 있습니다." },
+            { eng: "Without that sense, we could not feel any difference between rough and smooth surfaces.", kor: "그 감각이 없다면, 우리는 거친 표면과 매끄러운 표면의 차이를 느낄 수 없을 것입니다." },
+            { eng: "Skin can even help us determine if someone is sick.", kor: "피부는 누군가가 아픈지 판단하는 데도 도움이 될 수 있습니다." },
+            { eng: "The wrong color ─ slightly gray or very pale ─ may be a sign of disease.", kor: "이상한 색깔(약간 회색빛이 돌거나 매우 창백한 색)은 질병의 징후일 수 있습니다." },
+            { eng: "Skin may show a person’s mental state, too.", kor: "피부는 사람의 정신 상태를 보여줄 수도 있습니다." },
+            { eng: "Unusual sweating, for example, may be a sign that a person is nervous or under stress.", kor: "예를 들어, 평소와 다른 땀 흘림은 사람이 긴장했거나 스트레스를 받고 있다는 징후일 수 있습니다." }
+        ];
 
-    // 지문에서 선별한 핵심 단어 16개
-    const wordList = [
-        { eng: "psychologist", kor: "심리학자" },
-        { eng: "memory", kor: "기억" },
-        { eng: "short-term", kor: "단기의" },
-        { eng: "tactile", kor: "촉각의" },
-        { eng: "experience", kor: "경험" },
-        { eng: "comparison", kor: "비교" },
-        { eng: "predict", kor: "예측하다" },
-        { eng: "future", kor: "미래" },
-        { eng: "long-term", kor: "장기의" },
-        { eng: "store", kor: "저장하다" },
-        { eng: "childhood", kor: "어린 시절" },
-        { eng: "function", kor: "기능하다" },
-        { eng: "sound", kor: "소리" },
-        { eng: "cause", kor: "원인" },
-        { eng: "effect", kor: "결과" },
-        { eng: "sight", kor: "시각" }
-    ];
+        let currentSentenceIdx = 0;
 
-    // 한 줄씩 읽기용 문장 분할 및 번역 데이터
-    const sentenceList = [
-        { eng: "Psychologists who study memory tell us that our memories have three parts.", kor: "기억을 연구하는 심리학자들은 우리의 기억이 세 부분으로 이루어져 있다고 말합니다." },
-        { eng: "First, there is short-term memory, which holds on to sights, sounds, smells, tastes and tactile experiences for only a minute or so.", kor: "첫째로 단기 기억이 있는데, 이는 시각, 청각, 후각, 미각, 그리고 촉각 경험을 1분 정도만 유지합니다." },
-        { eng: "The second type of memory is working memory, which is where we use memory to think: We make comparisons, look for causes and effects, predict what will happen in the future.", kor: "두 번째 유형의 기억은 작업 기억으로, 사고하기 위해 기억을 사용하는 영역입니다. 즉, 비교를 하고, 원인과 결과를 찾으며, 미래에 일어날 일을 예측합니다." },
-        { eng: "Finally, long-term memory is what we keep for many years.", kor: "마지막으로, 장기 기억은 우리가 수년 동안 간직하는 것입니다." },
-        { eng: "It is where we store the words to a song learned in childhood.", kor: "이곳은 우리가 어린 시절에 배운 노래의 가사를 저장하는 곳입니다." },
-        { eng: "We need all three kinds of memory to function well in life.", kor: "우리가 삶에서 제대로 기능하기 위해서는 이 세 가지 종류의 기억이 모두 필요합니다." }
-    ];
+        document.addEventListener("DOMContentLoaded", () => {
+            initWords();
+            document.getElementById('fullPassageText').innerText = rawPassage;
+        });
 
-    let currentView = 'viewWords';
-    let currentSentenceIdx = 0;
+        function initWords() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
 
-    document.addEventListener("DOMContentLoaded", () => {
-        initWords();
-        document.getElementById('fullPassageText').innerText = rawPassage;
-    });
-
-    function initWords() {
-        const grid = document.getElementById('wordGrid');
-        grid.innerHTML = '';
-
-        let targetCount = 16;
-        let finalWords = [...wordList];
-
-        if (finalWords.length < 16) {
-            if(finalWords.length > 12) {
-                finalWords = finalWords.slice(0, 12);
-            }
-        }
-
-        for (let i = 0; i < targetCount; i++) {
-            const card = document.createElement('div');
-            
-            if (i < finalWords.length) {
-                const item = finalWords[i];
+            wordList.forEach(item => {
+                const card = document.createElement('div');
                 card.className = 'word-card';
                 card.innerText = item.eng;
                 card.dataset.eng = item.eng;
                 card.dataset.kor = item.kor;
                 card.dataset.state = 'eng';
                 
-                card.onclick = (e) => {
-                    e.stopPropagation();
-                    unlockAudioContext();
-                    toggleWord(card);
-                };
+                card.onclick = () => toggleWord(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleWord(card) {
+            if (card.dataset.state === 'eng') {
+                card.innerText = card.dataset.kor;
+                card.classList.add('meaning');
+                card.dataset.state = 'kor';
             } else {
-                card.className = 'word-card apple';
-                card.innerText = '🍎';
+                card.innerText = card.dataset.eng;
+                card.classList.remove('meaning');
+                card.dataset.state = 'eng';
             }
-            grid.appendChild(card);
+            speak(card.dataset.eng.replace(/^[0-9]+\.\s*/, ''));
         }
-    }
 
-    function toggleWord(card) {
-        const state = card.dataset.state;
-        const eng = card.dataset.eng;
-        const kor = card.dataset.kor;
-
-        if (state === 'eng') {
-            card.innerText = kor;
-            card.classList.add('meaning');
-            card.dataset.state = 'kor';
-        } else {
-            card.innerText = eng;
-            card.classList.remove('meaning');
-            card.dataset.state = 'eng';
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
         }
-        
-        speak(eng);
-    }
 
-    function speakAll() {
-        speak(rawPassage);
-    }
+        function speakAll() { speak(rawPassage); }
 
-    function showSentence() {
-        const current = sentenceList[currentSentenceIdx];
-        document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
-        document.getElementById('engSentence').innerText = current.eng;
-        
-        const korElem = document.getElementById('korSentence');
-        korElem.innerText = current.kor;
-        korElem.classList.remove('show');
-    }
+        function showSentence() {
+            const current = sentenceList[currentSentenceIdx];
+            document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
+            document.getElementById('engSentence').innerText = current.eng;
+            document.getElementById('korSentence').innerText = current.kor;
+            document.getElementById('korSentence').classList.remove('show');
+        }
 
-    function speakCurrentSentence() {
-        const current = sentenceList[currentSentenceIdx];
-        speak(current.eng);
-        
-        const korElem = document.getElementById('korSentence');
-        korElem.classList.add('show');
-    }
+        function speakCurrentSentence() {
+            speak(sentenceList[currentSentenceIdx].eng);
+            document.getElementById('korSentence').classList.add('show');
+        }
 
-    function nextSentence() {
-        if (currentSentenceIdx < sentenceList.length - 1) {
-            currentSentenceIdx++;
-            showSentence();
-        } else {
-            alert("학습이 완료되었습니다. 첫 문장으로 이동합니다.");
-            currentSentenceIdx = 0;
+        function nextSentence() {
+            if (currentSentenceIdx < sentenceList.length - 1) {
+                currentSentenceIdx++;
+            } else {
+                alert("마지막 문장입니다. 첫 문장으로 이동합니다.");
+                currentSentenceIdx = 0;
+            }
             showSentence();
         }
-    }
 
-    function speak(text) {
-        window.speechSynthesis.cancel();
-        
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85;
-        
-        window.speechSynthesis.speak(utterance);
-    }
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
 
-    function switchView(viewId) {
-        currentView = viewId;
-        document.getElementById('viewWords').classList.remove('active');
-        document.getElementById('viewFullText').classList.remove('active');
-        document.getElementById('viewSentence').classList.remove('active');
+            document.getElementById(viewId).classList.add('active');
 
-        document.getElementById(viewId).classList.add('active');
-
-        const titleMap = {
-            'viewWords': '단어 미리보기',
-            'viewFullText': '본문 전체 듣기',
-            'viewSentence': '한 문장씩 읽기'
-        };
-        document.getElementById('mainTitle').innerText = titleMap[viewId];
-
-        if (viewId === 'viewSentence') {
-            currentSentenceIdx = 0;
-            showSentence();
+            if (viewId === 'viewWords') document.getElementById('btnWords').classList.add('active');
+            if (viewId === 'viewFullText') document.getElementById('btnFullText').classList.add('active');
+            if (viewId === 'viewSentence') {
+                document.getElementById('btnSentence').classList.add('active');
+                currentSentenceIdx = 0;
+                showSentence();
+            }
         }
-    }
 
-    function handleBack() {
-        if (currentView !== 'viewWords') {
-            switchView('viewWords');
-        } else {
-            alert("인덱스 목록 화면으로 돌아갑니다.");
+        function handleBack() {
+            window.location.href = '../../index.html';
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>

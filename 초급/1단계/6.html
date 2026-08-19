@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3강 학습하기</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        h1 { font-size: 18px; font-weight: 700; }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        nav button {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        nav button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* 단어 16개 세로 1열 정렬 */
+        #wordGrid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px;
+            width: 100%;
+        }
+        .word-card {
+            width: 100%;
+            padding: 18px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .word-card.meaning {
+            background: #2563eb;
+        }
+
+        .passage-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sentence-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .eng-text { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .kor-text { font-size: 14px; color: #94a3b8; display: none; }
+        .kor-text.show { display: block; }
+        .sentence-controls { display: flex; gap: 8px; }
+        .sentence-controls button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-btn" onclick="handleBack()">❮ 메인으로</button>
+            <h1 id="mainTitle">3강 학습</h1>
+            <div style="width: 50px;"></div>
+        </header>
+
+        <nav>
+            <button id="btnWords" class="active" onclick="switchView('viewWords')">단어장</button>
+            <button id="btnFullText" onclick="switchView('viewFullText')">전체본문</button>
+            <button id="btnSentence" onclick="switchView('viewSentence')">문장학습</button>
+        </nav>
+
+        <!-- 1. 단어장 (세로 1열) -->
+        <div id="viewWords" class="view-panel active">
+            <div id="wordGrid"></div>
+        </div>
+
+        <!-- 2. 전체 본문 -->
+        <div id="viewFullText" class="view-panel">
+            <div class="passage-box" id="fullPassageText"></div>
+            <button class="btn-action" onclick="speakAll()">🔊 전체 오디오 듣기</button>
+        </div>
+
+        <!-- 3. 한 문장씩 읽기 -->
+        <div id="viewSentence" class="view-panel">
+            <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 6px;" id="sentenceCounter">1 / 1</div>
+            <div class="sentence-box">
+                <div class="eng-text" id="engSentence"></div>
+                <div class="kor-text" id="korSentence"></div>
+            </div>
+            <div class="sentence-controls">
+                <button class="btn-action" style="background: #0284c7;" onclick="speakCurrentSentence()">🔊 읽기 / 해석</button>
+                <button class="btn-action" onclick="nextSentence()">다음 문장 ❯</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 지문 기반 핵심 단어 16개 (세로 정렬용)
+        const wordList = [
+            { eng: "1. recent", kor: "최근의" },
+            { eng: "2. research", kor: "연구, 조사" },
+            { eng: "3. surprising", kor: "놀라운" },
+            { eng: "4. interested", kor: "관심이 있는" },
+            { eng: "5. interesting", kor: "흥미로운, 재미있는" },
+            { eng: "6. spend", kor: "(시간·돈을) 쓰다" },
+            { eng: "7. talk about", kor: "~에 대해 이야기하다" },
+            { eng: "8. yourself", kor: "당신 자신" },
+            { eng: "9. fall asleep", kor: "잠들다" },
+            { eng: "10. boredom", kor: "지루함, 지루성" },
+            { eng: "11. try to", kor: "~하려고 노력하다" },
+            { eng: "12. listen", kor: "경청하다, 듣다" },
+            { eng: "13. as much as possible", kor: "가능한 한 많이" },
+            { eng: "14. find", kor: "깨닫다, 알게 되다" },
+            { eng: "15. even if", kor: "비록 ~일지라도" },
+            { eng: "16. anything", kor: "아무것도, 어떤 것" }
+        ];
+
+        // 전체 본문
+        const rawPassage = `A recent research shows a surprising fact. People who are interested in other people are interesting to other people. If you go to a party and spend all the time talking about yourself and what you've done, people may fall asleep from boredom. But if you go to each person and try to listen and learn as much as possible about them, you might find that everyone thinks you're the most interesting person even if they don't know anything about you. What are good questions to ask someone you've just met?`;
+
+        // 문장별 분할 및 한국어 해석
+        const sentenceList = [
+            { eng: "A recent research shows a surprising fact.", kor: "최근의 한 연구는 놀라운 사실을 보여줍니다." },
+            { eng: "People who are interested in other people are interesting to other people.", kor: "다른 사람들에게 관심이 있는 사람은 다른 사람들에게 흥미로운 사람이 됩니다." },
+            { eng: "If you go to a party and spend all the time talking about yourself and what you've done, people may fall asleep from boredom.", kor: "만약 당신이 파티에 가서 자신과 자신이 한 일에 대해서만 내내 이야기한다면, 사람들은 지루해서 잠이 들지도 모릅니다." },
+            { eng: "But if you go to each person and try to listen and learn as much as possible about them, you might find that everyone thinks you're the most interesting person even if they don't know anything about you.", kor: "하지만 당신이 각 사람에게 찾아가 그들에 대해 가능한 한 많이 듣고 알아가려고 노력한다면, 비록 그들이 당신에 대해 아무것도 알지 못하더라도 모두가 당신을 가장 흥미로운 사람이라고 생각한다는 것을 깨닫게 될 것입니다." },
+            { eng: "What are good questions to ask someone you've just met?", kor: "방금 처음 만난 사람에게 묻기 좋은 질문은 무엇일까요?" }
+        ];
+
+        let currentSentenceIdx = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initWords();
+            document.getElementById('fullPassageText').innerText = rawPassage;
+        });
+
+        function initWords() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+
+            wordList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerText = item.eng;
+                card.dataset.eng = item.eng;
+                card.dataset.kor = item.kor;
+                card.dataset.state = 'eng';
+                
+                card.onclick = () => toggleWord(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleWord(card) {
+            if (card.dataset.state === 'eng') {
+                card.innerText = card.dataset.kor;
+                card.classList.add('meaning');
+                card.dataset.state = 'kor';
+            } else {
+                card.innerText = card.dataset.eng;
+                card.classList.remove('meaning');
+                card.dataset.state = 'eng';
+            }
+            speak(card.dataset.eng.replace(/^[0-9]+\.\s*/, ''));
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakAll() { speak(rawPassage); }
+
+        function showSentence() {
+            const current = sentenceList[currentSentenceIdx];
+            document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
+            document.getElementById('engSentence').innerText = current.eng;
+            document.getElementById('korSentence').innerText = current.kor;
+            document.getElementById('korSentence').classList.remove('show');
+        }
+
+        function speakCurrentSentence() {
+            speak(sentenceList[currentSentenceIdx].eng);
+            document.getElementById('korSentence').classList.add('show');
+        }
+
+        function nextSentence() {
+            if (currentSentenceIdx < sentenceList.length - 1) {
+                currentSentenceIdx++;
+            } else {
+                alert("마지막 문장입니다. 첫 문장으로 이동합니다.");
+                currentSentenceIdx = 0;
+            }
+            showSentence();
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'viewWords') document.getElementById('btnWords').classList.add('active');
+            if (viewId === 'viewFullText') document.getElementById('btnFullText').classList.add('active');
+            if (viewId === 'viewSentence') {
+                document.getElementById('btnSentence').classList.add('active');
+                currentSentenceIdx = 0;
+                showSentence();
+            }
+        }
+
+        function handleBack() {
+            window.location.href = '../../index.html';
+        }
+    </script>
+</body>
+</html>

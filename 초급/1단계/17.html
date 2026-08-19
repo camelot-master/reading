@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14강 학습하기</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        h1 { font-size: 18px; font-weight: 700; }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        nav button {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        nav button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* 단어 16개 세로 1열 정렬 */
+        #wordGrid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px;
+            width: 100%;
+        }
+        .word-card {
+            width: 100%;
+            padding: 18px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .word-card.meaning {
+            background: #2563eb;
+        }
+
+        .passage-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sentence-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .eng-text { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .kor-text { font-size: 14px; color: #94a3b8; display: none; }
+        .kor-text.show { display: block; }
+        .sentence-controls { display: flex; gap: 8px; }
+        .sentence-controls button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-btn" onclick="handleBack()">❮ 메인으로</button>
+            <h1 id="mainTitle">14강 학습</h1>
+            <div style="width: 50px;"></div>
+        </header>
+
+        <nav>
+            <button id="btnWords" class="active" onclick="switchView('viewWords')">단어장</button>
+            <button id="btnFullText" onclick="switchView('viewFullText')">전체본문</button>
+            <button id="btnSentence" onclick="switchView('viewSentence')">문장학습</button>
+        </nav>
+
+        <!-- 1. 단어장 (세로 1열) -->
+        <div id="viewWords" class="view-panel active">
+            <div id="wordGrid"></div>
+        </div>
+
+        <!-- 2. 전체 본문 -->
+        <div id="viewFullText" class="view-panel">
+            <div class="passage-box" id="fullPassageText"></div>
+            <button class="btn-action" onclick="speakAll()">🔊 전체 오디오 듣기</button>
+        </div>
+
+        <!-- 3. 한 문장씩 읽기 -->
+        <div id="viewSentence" class="view-panel">
+            <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 6px;" id="sentenceCounter">1 / 1</div>
+            <div class="sentence-box">
+                <div class="eng-text" id="engSentence"></div>
+                <div class="kor-text" id="korSentence"></div>
+            </div>
+            <div class="sentence-controls">
+                <button class="btn-action" style="background: #0284c7;" onclick="speakCurrentSentence()">🔊 읽기 / 해석</button>
+                <button class="btn-action" onclick="nextSentence()">다음 문장 ❯</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 지문 기반 핵심 단어 16개 (세로 정렬용)
+        const wordList = [
+            { eng: "1. posture", kor: "자세" },
+            { eng: "2. guideline", kor: "지침, 가이드라인" },
+            { eng: "3. constantly", kor: "지속적으로, 끊임없이" },
+            { eng: "4. lean", kor: "기울이다, 숙이다" },
+            { eng: "5. encourage", kor: "권장하다, 격려하다" },
+            { eng: "6. chin", kor: "턱" },
+            { eng: "7. tuck in", kor: "~을 당기다, 집어넣다" },
+            { eng: "8. support", kor: "받치다, 지지하다" },
+            { eng: "9. upright", kor: "직립한, 똑바로 선" },
+            { eng: "10. twist", kor: "틀다, 비틀다" },
+            { eng: "11. sideways", kor: "옆으로, 옆을 향해" },
+            { eng: "12. take a break", kor: "휴식을 취하다" },
+            { eng: "13. relieve", kor: "피로를 풀다, 완화하다" },
+            { eng: "14. muscle", kor: "근육" },
+            { eng: "15. refresh", kor: "피로를 회복시키다, 새로이 하다" },
+            { eng: "16. distant", kor: "먼, 먼 곳의" }
+        ];
+
+        // 전체 본문
+        const rawPassage = `Posture is very important when children use a computer, so they should be given a few simple guidelines. Make sure they are not constantly leaning the head forward and encourage them to keep the chin tucked in. The back should be supported in an upright position in the chair and the body should face forwards not be twisted sideways. Also, children should take a break from the computer at least every twenty minutes and do some simple stretching to relieve the muscles they have been using. It is a good idea to get up and walk around at least once an hour and refresh the eye muscles by looking at distant objects.`;
+
+        // 문장별 분할 및 한국어 해석
+        const sentenceList = [
+            { eng: "Posture is very important when children use a computer, so they should be given a few simple guidelines.", kor: "아이들이 컴퓨터를 사용할 때는 자세가 매우 중요하므로 몇 가지 간단한 지침을 제시해 주어야 합니다." },
+            { eng: "Make sure they are not constantly leaning the head forward and encourage them to keep the chin tucked in.", kor: "머리를 지속적으로 앞으로 숙이지 않도록 확인하고, 턱을 안으로 당긴 상태를 유지하도록 권장하세요." },
+            { eng: "The back should be supported in an upright position in the chair and the body should face forwards not be twisted sideways.", kor: "등은 의자에서 똑바로 선 자세로 지지되어야 하며, 몸은 옆으로 비틀어지지 않고 앞을 향해야 합니다." },
+            { eng: "Also, children should take a break from the computer at least every twenty minutes and do some simple stretching to relieve the muscles they have been using.", kor: "또한 아이들은 적어도 20분마다 컴퓨터 사용을 잠시 쉬고, 사용했던 근육을 풀어주는 간단한 스트레칭을 해야 합니다." },
+            { eng: "It is a good idea to get up and walk around at least once an hour and refresh the eye muscles by looking at distant objects.", kor: "적어도 한 시간에 한 번은 일어나서 주변을 걸어 다니고, 먼 곳의 물체를 바라보며 눈 근육의 피로를 풀어주는 것이 좋습니다." }
+        ];
+
+        let currentSentenceIdx = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initWords();
+            document.getElementById('fullPassageText').innerText = rawPassage;
+        });
+
+        function initWords() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+
+            wordList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerText = item.eng;
+                card.dataset.eng = item.eng;
+                card.dataset.kor = item.kor;
+                card.dataset.state = 'eng';
+                
+                card.onclick = () => toggleWord(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleWord(card) {
+            if (card.dataset.state === 'eng') {
+                card.innerText = card.dataset.kor;
+                card.classList.add('meaning');
+                card.dataset.state = 'kor';
+            } else {
+                card.innerText = card.dataset.eng;
+                card.classList.remove('meaning');
+                card.dataset.state = 'eng';
+            }
+            speak(card.dataset.eng.replace(/^[0-9]+\.\s*/, ''));
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakAll() { speak(rawPassage); }
+
+        function showSentence() {
+            const current = sentenceList[currentSentenceIdx];
+            document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
+            document.getElementById('engSentence').innerText = current.eng;
+            document.getElementById('korSentence').innerText = current.kor;
+            document.getElementById('korSentence').classList.remove('show');
+        }
+
+        function speakCurrentSentence() {
+            speak(sentenceList[currentSentenceIdx].eng);
+            document.getElementById('korSentence').classList.add('show');
+        }
+
+        function nextSentence() {
+            if (currentSentenceIdx < sentenceList.length - 1) {
+                currentSentenceIdx++;
+            } else {
+                alert("마지막 문장입니다. 첫 문장으로 이동합니다.");
+                currentSentenceIdx = 0;
+            }
+            showSentence();
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'viewWords') document.getElementById('btnWords').classList.add('active');
+            if (viewId === 'viewFullText') document.getElementById('btnFullText').classList.add('active');
+            if (viewId === 'viewSentence') {
+                document.getElementById('btnSentence').classList.add('active');
+                currentSentenceIdx = 0;
+                showSentence();
+            }
+        }
+
+        function handleBack() {
+            window.location.href = '../../index.html';
+        }
+    </script>
+</body>
+</html>

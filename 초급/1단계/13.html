@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10강 학습하기</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        h1 { font-size: 18px; font-weight: 700; }
+        
+        nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        nav button {
+            flex: 1;
+            padding: 10px;
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        nav button.active {
+            background: #2563eb;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* 단어 16개 세로 1열 정렬 */
+        #wordGrid {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px;
+            width: 100%;
+        }
+        .word-card {
+            width: 100%;
+            padding: 18px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .word-card.meaning {
+            background: #2563eb;
+        }
+
+        .passage-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 16px;
+            white-space: pre-line;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .sentence-box {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .eng-text { font-size: 17px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+        .kor-text { font-size: 14px; color: #94a3b8; display: none; }
+        .kor-text.show { display: block; }
+        .sentence-controls { display: flex; gap: 8px; }
+        .sentence-controls button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="back-btn" onclick="handleBack()">❮ 메인으로</button>
+            <h1 id="mainTitle">10강 학습</h1>
+            <div style="width: 50px;"></div>
+        </header>
+
+        <nav>
+            <button id="btnWords" class="active" onclick="switchView('viewWords')">단어장</button>
+            <button id="btnFullText" onclick="switchView('viewFullText')">전체본문</button>
+            <button id="btnSentence" onclick="switchView('viewSentence')">문장학습</button>
+        </nav>
+
+        <!-- 1. 단어장 (세로 1열) -->
+        <div id="viewWords" class="view-panel active">
+            <div id="wordGrid"></div>
+        </div>
+
+        <!-- 2. 전체 본문 -->
+        <div id="viewFullText" class="view-panel">
+            <div class="passage-box" id="fullPassageText"></div>
+            <button class="btn-action" onclick="speakAll()">🔊 전체 오디오 듣기</button>
+        </div>
+
+        <!-- 3. 한 문장씩 읽기 -->
+        <div id="viewSentence" class="view-panel">
+            <div style="text-align: right; font-size: 12px; color: #94a3b8; margin-bottom: 6px;" id="sentenceCounter">1 / 1</div>
+            <div class="sentence-box">
+                <div class="eng-text" id="engSentence"></div>
+                <div class="kor-text" id="korSentence"></div>
+            </div>
+            <div class="sentence-controls">
+                <button class="btn-action" style="background: #0284c7;" onclick="speakCurrentSentence()">🔊 읽기 / 해석</button>
+                <button class="btn-action" onclick="nextSentence()">다음 문장 ❯</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 지문 기반 핵심 단어 16개 (세로 정렬용)
+        const wordList = [
+            { eng: "1. wherever", kor: "어디에 있든" },
+            { eng: "2. whatever", kor: "무엇을 하든" },
+            { eng: "3. enjoy", kor: "누리다, 즐기다" },
+            { eng: "4. result", kor: "결과, 결실" },
+            { eng: "5. sound engineer", kor: "음향 엔지니어" },
+            { eng: "6. disease", kor: "질병, 병" },
+            { eng: "7. discover", kor: "발견하다" },
+            { eng: "8. cure", kor: "치료법, 치료제" },
+            { eng: "9. treatment", kor: "치료, 처치" },
+            { eng: "10. chemist", kor: "화학자" },
+            { eng: "11. medicine", kor: "약, 의약품" },
+            { eng: "12. agricultural", kor: "농업의, 농경의" },
+            { eng: "13. nutritious", kor: "영양가 있는" },
+            { eng: "14. produce", kor: "농산물" },
+            { eng: "15. automotive", kor: "자동차의" },
+            { eng: "16. ocean", kor: "해양, 바다" }
+        ];
+
+        // 전체 본문
+        const rawPassage = `Wherever you are or whatever you’re doing, you’re probably enjoying the results from a scientist’s work. Sound engineers make your movies and music better. Doctors study diseases and discover new cures and treatments. Chemists bring you health and beauty aids ─ from medicines to soap and perfume. Agricultural scientists help bring fresh, nutritious produce to your supermarkets. And automotive engineers help get you from point A to point B quickly and safely. These are just a few examples. There are many more examples of science on the ground, in the skies, and in the oceans.`;
+
+        // 문장별 분할 및 한국어 해석
+        const sentenceList = [
+            { eng: "Wherever you are or whatever you’re doing, you’re probably enjoying the results from a scientist’s work.", kor: "당신이 어디에 있든 무엇을 하고 있든, 당신은 아마 과학자의 연구 결과를 누리고 있을 것입니다." },
+            { eng: "Sound engineers make your movies and music better.", kor: "음향 엔지니어는 영화와 음악의 품질을 더 좋게 만듭니다." },
+            { eng: "Doctors study diseases and discover new cures and treatments.", kor: "의사들은 질병을 연구하고 새로운 치료법과 치료제를 발견합니다." },
+            { eng: "Chemists bring you health and beauty aids ─ from medicines to soap and perfume.", kor: "화학자들은 약에서부터 비누와 향수에 이르기까지 건강과 미용에 도움을 주는 제품을 가져다줍니다." },
+            { eng: "Agricultural scientists help bring fresh, nutritious produce to your supermarkets.", kor: "농업 과학자들은 슈퍼마켓에 신선하고 영양가 있는 농산물이 공급되도록 돕습니다." },
+            { eng: "And automotive engineers help get you from point A to point B quickly and safely.", kor: "그리고 자동차 엔지니어들은 당신이 A 지점에서 B 지점까지 빠르고 안전하게 이동할 수 있도록 돕습니다." },
+            { eng: "These are just a few examples.", kor: "이것들은 단지 몇 가지 예시에 불과합니다." },
+            { eng: "There are many more examples of science on the ground, in the skies, and in the oceans.", kor: "땅 위, 하늘, 그리고 바다 속에는 과학이 활용되는 더 많은 예시들이 존재합니다." }
+        ];
+
+        let currentSentenceIdx = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            initWords();
+            document.getElementById('fullPassageText').innerText = rawPassage;
+        });
+
+        function initWords() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+
+            wordList.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerText = item.eng;
+                card.dataset.eng = item.eng;
+                card.dataset.kor = item.kor;
+                card.dataset.state = 'eng';
+                
+                card.onclick = () => toggleWord(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function toggleWord(card) {
+            if (card.dataset.state === 'eng') {
+                card.innerText = card.dataset.kor;
+                card.classList.add('meaning');
+                card.dataset.state = 'kor';
+            } else {
+                card.innerText = card.dataset.eng;
+                card.classList.remove('meaning');
+                card.dataset.state = 'eng';
+            }
+            speak(card.dataset.eng.replace(/^[0-9]+\.\s*/, ''));
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakAll() { speak(rawPassage); }
+
+        function showSentence() {
+            const current = sentenceList[currentSentenceIdx];
+            document.getElementById('sentenceCounter').innerText = `${currentSentenceIdx + 1} / ${sentenceList.length}`;
+            document.getElementById('engSentence').innerText = current.eng;
+            document.getElementById('korSentence').innerText = current.kor;
+            document.getElementById('korSentence').classList.remove('show');
+        }
+
+        function speakCurrentSentence() {
+            speak(sentenceList[currentSentenceIdx].eng);
+            document.getElementById('korSentence').classList.add('show');
+        }
+
+        function nextSentence() {
+            if (currentSentenceIdx < sentenceList.length - 1) {
+                currentSentenceIdx++;
+            } else {
+                alert("마지막 문장입니다. 첫 문장으로 이동합니다.");
+                currentSentenceIdx = 0;
+            }
+            showSentence();
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'viewWords') document.getElementById('btnWords').classList.add('active');
+            if (viewId === 'viewFullText') document.getElementById('btnFullText').classList.add('active');
+            if (viewId === 'viewSentence') {
+                document.getElementById('btnSentence').classList.add('active');
+                currentSentenceIdx = 0;
+                showSentence();
+            }
+        }
+
+        function handleBack() {
+            window.location.href = '../../index.html';
+        }
+    </script>
+</body>
+</html>

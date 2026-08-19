@@ -263,36 +263,36 @@
     }
 
     // 1. 제공받은 지문 데이터
-    const rawPassage = "People who try to sell their products abroad have to remember certain things. To give the right information about their products, they need to be very careful about translating. They must also consider differences in laws and customs. For instance, certain countries will not allow TV commercials on Sunday, and others will not allow TV commercials for children's products on any day of the week. In some parts of the world, it is forbidden to show dogs on television or certain types of clothing, such as jeans. People who do not understand such laws and customs will soon have problems.";
+    const rawPassage = "Psychologists who study memory tell us that our memories have three parts. First, there is short-term memory, which holds on to sights, sounds, smells, tastes and tactile experiences for only a minute or so. The second type of memory is working memory, which is where we use memory to think: We make comparisons, look for causes and effects, predict what will happen in the future. Finally, long-term memory is what we keep for many years. It is where we store the words to a song learned in childhood. We need all three kinds of memory to function well in life.";
 
     // 지문에서 선별한 핵심 단어 16개
     const wordList = [
-        { eng: "abroad", kor: "해외에서" },
-        { eng: "product", kor: "제품" },
-        { eng: "translate", kor: "번역하다" },
-        { eng: "consider", kor: "고려하다" },
-        { eng: "difference", kor: "차이점" },
-        { eng: "custom", kor: "관습" },
-        { eng: "commercial", kor: "광고" },
-        { eng: "certain", kor: "특정한" },
-        { eng: "forbidden", kor: "금지된" },
-        { eng: "television", kor: "텔레비전" },
-        { eng: "clothing", kor: "의류" },
-        { eng: "understand", kor: "이해하다" },
-        { eng: "problem", kor: "문제" },
-        { eng: "allow", kor: "허용하다" },
-        { eng: "information", kor: "정보" },
-        { eng: "careful", kor: "신중한" }
+        { eng: "psychologist", kor: "심리학자" },
+        { eng: "memory", kor: "기억" },
+        { eng: "short-term", kor: "단기의" },
+        { eng: "tactile", kor: "촉각의" },
+        { eng: "experience", kor: "경험" },
+        { eng: "comparison", kor: "비교" },
+        { eng: "predict", kor: "예측하다" },
+        { eng: "future", kor: "미래" },
+        { eng: "long-term", kor: "장기의" },
+        { eng: "store", kor: "저장하다" },
+        { eng: "childhood", kor: "어린 시절" },
+        { eng: "function", kor: "기능하다" },
+        { eng: "sound", kor: "소리" },
+        { eng: "cause", kor: "원인" },
+        { eng: "effect", kor: "결과" },
+        { eng: "sight", kor: "시각" }
     ];
 
     // 한 줄씩 읽기용 문장 분할 및 번역 데이터
     const sentenceList = [
-        { eng: "People who try to sell their products abroad have to remember certain things.", kor: "해외에서 제품을 판매하려는 사람들은 몇 가지 사항을 기억해야 합니다." },
-        { eng: "To give the right information about their products, they need to be very careful about translating.", kor: "제품에 대한 올바른 정보를 제공하기 위해서는 번역할 때 매우 신중해야 합니다." },
-        { eng: "They must also consider differences in laws and customs.", kor: "또한 법과 관습의 차이점도 고려해야 합니다." },
-        { eng: "For instance, certain countries will not allow TV commercials on Sunday, and others will not allow TV commercials for children's products on any day of the week.", kor: "예를 들어, 어떤 국가에서는 일요일에 TV 광고를 허용하지 않고, 다른 국가에서는 요일에 상관없이 어린이용 제품의 TV 광고를 허용하지 않습니다." },
-        { eng: "In some parts of the world, it is forbidden to show dogs on television or certain types of clothing, such as jeans.", kor: "세계 어떤 지역에서는 텔레비전에 개나 청바지와 같은 특정 유형의 옷을 보여주는 것이 금지되어 있습니다." },
-        { eng: "People who do not understand such laws and customs will soon have problems.", kor: "이러한 법과 관습을 이해하지 못하는 사람들은 곧 문제에 봉착하게 될 것입니다." }
+        { eng: "Psychologists who study memory tell us that our memories have three parts.", kor: "기억을 연구하는 심리학자들은 우리의 기억이 세 부분으로 이루어져 있다고 말합니다." },
+        { eng: "First, there is short-term memory, which holds on to sights, sounds, smells, tastes and tactile experiences for only a minute or so.", kor: "첫째로 단기 기억이 있는데, 이는 시각, 청각, 후각, 미각, 그리고 촉각 경험을 1분 정도만 유지합니다." },
+        { eng: "The second type of memory is working memory, which is where we use memory to think: We make comparisons, look for causes and effects, predict what will happen in the future.", kor: "두 번째 유형의 기억은 작업 기억으로, 사고하기 위해 기억을 사용하는 영역입니다. 즉, 비교를 하고, 원인과 결과를 찾으며, 미래에 일어날 일을 예측합니다." },
+        { eng: "Finally, long-term memory is what we keep for many years.", kor: "마지막으로, 장기 기억은 우리가 수년 동안 간직하는 것입니다." },
+        { eng: "It is where we store the words to a song learned in childhood.", kor: "이곳은 우리가 어린 시절에 배운 노래의 가사를 저장하는 곳입니다." },
+        { eng: "We need all three kinds of memory to function well in life.", kor: "우리가 삶에서 제대로 기능하기 위해서는 이 세 가지 종류의 기억이 모두 필요합니다." }
     ];
 
     let currentView = 'viewWords';
